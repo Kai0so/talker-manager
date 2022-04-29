@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs').promises;
+const { randomBytes } = require('crypto');
 
 const app = express();
 app.use(bodyParser.json());
@@ -29,6 +30,12 @@ app.get('/talker/:id', async (req, res) => {
   }
 
   return res.status(HTTP_OK_STATUS).json(talker);
+});
+
+app.post('/login', (req, res) => {
+  const token = randomBytes(8).toString('hex');
+
+  return res.status(HTTP_OK_STATUS).json({ token });
 });
 
 // não remova esse endpoint, e para o avaliador funcionar
