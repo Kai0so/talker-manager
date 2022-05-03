@@ -8,6 +8,7 @@ app.use(bodyParser.json());
 
 const HTTP_OK_STATUS = 200;
 const HTTP_NOTFOUND_STATUS = 404;
+const HTTP_BADREQUEST_STATUS = 400;
 const PORT = '3000';
 
 app.get('/talker', async (_req, res) => {
@@ -34,7 +35,22 @@ app.get('/talker/:id', async (req, res) => {
 
 app.post('/login', (req, res) => {
   const token = randomBytes(8).toString('hex');
-
+  const { email, password } = req.body;
+  if (!email) {
+    return res.status(HTTP_BADREQUEST_STATUS).json({ message: 'O campo "email" é obrigatório' });
+  }
+  if (!email.includes('.com', '@')) {
+    return res.status(HTTP_BADREQUEST_STATUS).json(
+      { message: 'O "email" deve ter o formato "email@email.com"' },
+    );
+  }
+  if (!password) {
+    return res.status(HTTP_BADREQUEST_STATUS).json({ message: 'O campo "password" é obrigatório' });
+  }
+  if (password.length < 6) {
+    return res.status(HTTP_BADREQUEST_STATUS)
+    .json({ message: 'O "password" deve ter pelo menos 6 caracteres' });
+  }
   return res.status(HTTP_OK_STATUS).json({ token });
 });
 
