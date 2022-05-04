@@ -163,11 +163,20 @@ app.put('/talker/:id',
     const { name, age, talk } = req.body;
     const talkers = JSON.parse(await fs.readFile(talkersFile));
     const talkerIndex = talkers.findIndex((t) => t.id === parseFloat(id));
-
     const updatedTalkerList = [talkers[talkerIndex] = { ...talkers[talkerIndex], name, age, talk }];
 
     await fs.writeFile(talkersFile, JSON.stringify(updatedTalkerList));
     return res.status(HTTP_OK).json(talkers[talkerIndex]);
+});
+
+app.delete('/talker/:id', tokenValidation, async (req, res) => {
+    const { id } = req.params;
+    const talkers = JSON.parse(await fs.readFile('./talker.json'));
+    const talkerIndex = talkers.findIndex((t) => t.id === parseFloat(id));
+
+    talkers.splice(talkerIndex, 1);
+    await fs.writeFile('./talker.json', JSON.stringify(talkers));
+    return res.status(204).end();
 });
 
 // não remova esse endpoint, e para o avaliador funcionar
