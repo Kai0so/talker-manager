@@ -8,6 +8,7 @@ app.use(bodyParser.json());
 
 const HTTP_OK = 200;
 const HTTP_CREATED = 201;
+const HTTP_NOCONTENT = 204;
 const HTTP_BADREQUEST = 400;
 const HTTP_UNAUT = 401;
 const HTTP_NOTFOUND = 404;
@@ -101,10 +102,6 @@ function dateValidation(req, res, next) {
 function rateValidation(req, res, next) {
   const { talk } = req.body;
 
-  if (talk.rate === 0) {
-    return res.status(HTTP_BADREQUEST).json(errorMessage('invalidRate'));
-  }
-
   if (talk.rate < 1 || talk.rate > 5) {
     return res.status(HTTP_BADREQUEST).json(errorMessage('invalidRate'));
   }
@@ -171,12 +168,12 @@ app.put('/talker/:id',
 
 app.delete('/talker/:id', tokenValidation, async (req, res) => {
     const { id } = req.params;
-    const talkers = JSON.parse(await fs.readFile('./talker.json'));
+    const talkers = JSON.parse(await fs.readFile(talkersFile));
     const talkerIndex = talkers.findIndex((t) => t.id === parseFloat(id));
 
     talkers.splice(talkerIndex, 1);
-    await fs.writeFile('./talker.json', JSON.stringify(talkers));
-    return res.status(204).end();
+    await fs.writeFile(talkersFile, JSON.stringify(talkers));
+    return res.status(HTTP_NOCONTENT).end();
 });
 
 // não remova esse endpoint, e para o avaliador funcionar
