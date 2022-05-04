@@ -8,8 +8,9 @@ app.use(bodyParser.json());
 
 const HTTP_OK = 200;
 const HTTP_CREATED = 201;
-const HTTP_NOTFOUND = 404;
 const HTTP_BADREQUEST = 400;
+const HTTP_UNAUT = 401;
+const HTTP_NOTFOUND = 404;
 const PORT = '3000';
 
 const dateRegex = /^([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)\d{4}$/i;
@@ -52,8 +53,8 @@ function userValidation(req, res, next) {
 function tokenValidation(req, res, next) {
   const { authorization } = req.headers;
 
-  if (!authorization) return res.status(401).json(errorMessage('tokenNotFound'));
-  if (authorization.length !== 16) return res.status(401).json(errorMessage('invalidToken'));
+  if (!authorization) return res.status(HTTP_UNAUT).json(errorMessage('tokenNotFound'));
+  if (authorization.length !== 16) return res.status(HTTP_UNAUT).json(errorMessage('invalidToken'));
 
   next();
 }
