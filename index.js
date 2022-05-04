@@ -13,6 +13,7 @@ const HTTP_UNAUT = 401;
 const HTTP_NOTFOUND = 404;
 const PORT = '3000';
 
+const talkersFile = './talker.json';
 const dateRegex = /^([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)\d{4}$/i;
 
 //  Object Literals
@@ -80,7 +81,7 @@ function ageValidation(req, res, next) {
 function talkValidation(req, res, next) {
   const { talk } = req.body;
 
-  if (!talk || !talk.watchedAt || !talk.rate) {
+  if (talk === undefined || talk.watchedAt === undefined || talk.rate === undefined) {
     return res.status(HTTP_BADREQUEST).json(errorMessage('tlkReq'));
   }
 
@@ -100,6 +101,10 @@ function dateValidation(req, res, next) {
 function rateValidation(req, res, next) {
   const { talk } = req.body;
 
+  if (talk.rate === 0) {
+    return res.status(HTTP_BADREQUEST).json(errorMessage('invalidRate'));
+  }
+
   if (talk.rate < 1 || talk.rate > 5) {
     return res.status(HTTP_BADREQUEST).json(errorMessage('invalidRate'));
   }
@@ -109,14 +114,14 @@ function rateValidation(req, res, next) {
 
 //  Endpoints
 app.get('/talker', async (_req, res) => {
-  const talkers = JSON.parse(await fs.readFile('./talker.json'));
+  const talkers = JSON.parse(await fs.readFile(talkersFile));
 
   return res.status(HTTP_OK).json(talkers);
 });
 
 app.get('/talker/:id', async (req, res) => {
   const { id } = req.params;
-  const talkers = JSON.parse(await fs.readFile('./talker.json'));
+  const talkers = JSON.parse(await fs.readFile(talkersFile));
   const talker = talkers.find((t) => t.id === parseFloat(id));
 
   if (!talker) return res.status(HTTP_NOTFOUND).json(errorMessage('talkerNotFound'));
@@ -137,13 +142,32 @@ app.post('/talker',
   dateValidation,
   rateValidation,
   async (req, res) => {
-    const talkers = JSON.parse(await fs.readFile('./talker.json'));
     const { name, age, talk } = req.body;
+    const talkers = JSON.parse(await fs.readFile(talkersFile));
     const talker = { id: talkers.length + 1, name, age, talk };
     const updatedTalkerList = [...talkers, talker];
 
-    await fs.writeFile('./talker.json', JSON.stringify(updatedTalkerList));
+    await fs.writeFile(talkersFile, JSON.stringify(updatedTalkerList));
     return res.status(HTTP_CREATED).json(talker);
+});
+
+app.put('/talker/:id',
+  tokenValidation,
+  nameValidation,
+  ageValidation,
+  talkValidation,
+  dateValidation,
+  rateValidation,
+  async (req, res) => {
+    const { id } = req.params;
+    const { name, age, talk } = req.body;
+    const talkers = JSON.parse(await fs.readFile(talkersFile));
+    const talkerIndex = talkers.findIndex((t) => t.id === parseFloat(id));
+
+    const updatedTalkerList = [talkers[talkerIndex] = { ...talkers[talkerIndex], name, age, talk }];
+
+    await fs.writeFile(talkersFile, JSON.stringify(updatedTalkerList));
+    return res.status(HTTP_OK).json(talkers[talkerIndex]);
 });
 
 // não remova esse endpoint, e para o avaliador funcionar
